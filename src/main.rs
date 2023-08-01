@@ -1,43 +1,21 @@
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
-
 #[macro_use]
 extern crate diesel;
+use actix_web::{ App, HttpServer };
 
 pub mod db;
 pub mod schema;
 pub mod models;
-pub mod models_dao;
+pub mod services;
 pub mod primitives;
+pub mod routes;
 
-use models::*;
-
-
-struct AppState;
-
-#[get("/")]
-async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
-}
-
-#[get("/pardal")]
-async fn pardal() -> impl Responder {
-    HttpResponse::Ok().body("🐦 piu piu")
-}
-
-#[post("/users")]
-async fn create_user(user: web::Json<CardEntity>, _data: web::Data<AppState>) -> impl Responder {
-    let user = user.into_inner();
-    HttpResponse::Created().json(user)
-}
+const SERVER_ADDRESS: &'static str = "127.0.0.1:8080";
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| {
-        App::new()
-            .service(hello)
-            .service(pardal)
-    })
-    .bind(("127.0.0.1", 8000))?
-    .run()
-    .await
+    HttpServer::new(|| App::new().configure(routes::config))
+        .bind(SERVER_ADDRESS)?
+        .workers(1)
+        .run()
+        .await
 }

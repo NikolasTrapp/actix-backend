@@ -3,6 +3,7 @@ use diesel::deserialize::{self, FromSql, FromSqlRow};
 use diesel::expression::AsExpression;
 use diesel::pg::{Pg, PgValue};
 use diesel::serialize::{self, IsNull, Output, ToSql};
+use std::fmt::Display;
 use std::io::Write;
 
 
@@ -25,6 +26,28 @@ impl CardEntity {
 
     pub fn get_id(self) -> i64 {
         self.id
+    }
+
+    pub fn get_real_card_strength(self, other: CardEntity) -> u8 {
+        let mut card_strength: u8 = match other.card_value {
+            4 => 1,
+            5 => 2,
+            6 => 3,
+            7 => 4,
+            10 => 5,
+            11 => 6,
+            12 => 7,
+            1 => 8,
+            2 => 9,
+            3 => 10,
+            _ => panic!("Card value {} doesn't exist.", other.card_value)
+        };
+
+        if other.is_manilha {
+            card_strength += Suit::get_suit_strength(&other.suit);
+        }
+
+        card_strength
     }
 }
 
@@ -237,4 +260,16 @@ impl FromSql<crate::schema::sql_types::Suit, Pg> for Suit {
             _ => Err("Enum nao identificada".into()),
         }
     }
+}
+
+impl Suit {
+    pub fn get_suit_strength(suit: &Suit) -> u8 {
+        match suit {
+            Suit::Diamonds => 1,
+            Suit::Spades => 2,
+            Suit::Hearts => 3,
+            Suit::Clubs => 4,
+            Suit::Blocked(_) => 0,
+        }
+    } 
 }

@@ -1,7 +1,7 @@
 pub mod cards_dao {
     use crate::schema::cards_tb::dsl::cards_tb;
     use crate::schema::cards_tb as primary_cards_table;
-    use primary_cards_table::id;
+    use primary_cards_table::{id, player_entity_id};
     use crate::models::{ CardEntity, NewCardEntity };
     use crate::db;
     use diesel::prelude::*;
@@ -18,7 +18,7 @@ pub mod cards_dao {
     pub fn get_by_id(card_id: i64) -> Option<CardEntity> {
         let mut conn = db::establish_connection();
         let result = cards_tb
-            .filter(id.eq(&card_id))
+            .find(card_id)
             .first(&mut conn)
             .optional();
 
@@ -27,21 +27,32 @@ pub mod cards_dao {
             Err(_) => None,
         }
     }
+
+    pub fn get_player_cards(player_id: i64) -> Vec<CardEntity> {
+        let mut conn = db::establish_connection();
+        let results = cards_tb
+            .filter(player_entity_id.eq(&player_id))
+            .limit(3)
+            .load::<CardEntity>(&mut conn);
+
+        match results {
+            Ok(x) => x,
+            Err(err) => panic!("{}", err)
+        }
+            
+    }
     
-    pub fn save(card: &NewCardEntity) -> CardEntity {
+    pub fn save(card: &NewCardEntity) -> Option<CardEntity> {
         let mut conn = db::establish_connection();
         let new_card = diesel::insert_into(primary_cards_table::table)
             .values(card)
             .returning(CardEntity::as_returning())
             .get_result(&mut conn)
             .optional();
-        
-        
 
         match new_card {
-            Ok(Some(c)) => c,
-            Ok(None) => panic!("DEU NONE AAA"),
-            Err(err) => panic!("{}", err),
+            Ok(result) => result,
+            Err(err) => panic!("Some error ocourred while trying to save card, {}", err),
         }
         
     }
@@ -80,8 +91,7 @@ pub mod cards_dao {
 pub mod players_dao {
     
     use crate::schema::players_tb::dsl::players_tb;
-    use crate::schema::players_tb as primary_players_tb;
-    use primary_players_tb::id;
+    use crate::schema::players_tb::{self as primary_players_tb, team_entity_id, id };
     use crate::models::{ PlayerEntity, NewPlayerEntity };
     use crate::db;
     use diesel::prelude::*;
@@ -108,8 +118,22 @@ pub mod players_dao {
             Err(_) => None,
         }
     }
+
+    pub fn get_players_by_team_id(team_id: i64) -> Vec<PlayerEntity> {
+        let mut conn = db::establish_connection();
+        let results = players_tb
+            .filter(team_entity_id.eq(&team_id))
+            .limit(2)
+            .load::<PlayerEntity>(&mut conn);
+
+        match results {
+            Ok(x) => x,
+            Err(err) => panic!("{}", err)
+        }
+            
+    }
     
-    pub fn save(player: &NewPlayerEntity) -> PlayerEntity {
+    pub fn save(player: &NewPlayerEntity) -> Option<PlayerEntity> {
         let mut conn = db::establish_connection();
         let new_player = diesel::insert_into(primary_players_tb::table)
             .values(player)
@@ -118,8 +142,8 @@ pub mod players_dao {
             .optional();
     
         match new_player {
-            Ok(Some(p)) => p,
-            _ => panic!("Error while inserting player!")
+            Ok(result) => result,
+            Err(err) => panic!("Some error ocourred while trying to save card, {}", err),
         }
         
     }
@@ -189,7 +213,7 @@ pub mod teams_dao {
         
     }
     
-    pub fn save(team: &NewTeamEntity) -> TeamEntity {
+    pub fn save(team: &NewTeamEntity) -> Option<TeamEntity> {
         let mut conn = db::establish_connection();
         let new_team = diesel::insert_into(primary_teams_tb::table)
             .values(team)
@@ -198,8 +222,8 @@ pub mod teams_dao {
             .optional();
     
         match new_team {
-            Ok(Some(p)) => p,
-            _ => panic!("Error while inserting team!")
+            Ok(result) => result,
+            Err(err) => panic!("Some error ocourred while trying to save card, {}", err),
         }
         
     }
@@ -238,7 +262,6 @@ pub mod tables_dao {
     
     use crate::schema::tables_tb::dsl::tables_tb;
     use crate::schema::tables_tb as primary_tables_tb;
-    use diesel::result::Error;
     use primary_tables_tb::id;
     use crate::models::{ TableEntity, NewTableEntity };
     use crate::db;
@@ -270,7 +293,7 @@ pub mod tables_dao {
         }
     }
     
-    pub fn save(table: &NewTableEntity) -> TableEntity {
+    pub fn save(table: &NewTableEntity) -> Option<TableEntity> {
         let mut conn = db::establish_connection();
         let new_table = diesel::insert_into(primary_tables_tb::table)
             .values(table)
@@ -279,9 +302,8 @@ pub mod tables_dao {
             .optional();
     
         match new_table {
-            Ok(Some(t)) => t,
-            Ok(None) => panic!("DEU NONE AAA"),
-            Err(err) => panic!("{}", err),
+            Ok(result) => result,
+            Err(err) => panic!("Some error ocourred while trying to save card, {}", err),
         }
         
     }
@@ -314,4 +336,61 @@ pub mod tables_dao {
             .execute(&mut conn)
             .map(|_| ())
     }
+}
+
+pub mod cards_service {
+
+    use crate::models::{ NewCardEntity, CardEntity };
+    use super::cards_dao::{*, self};
+
+    pub fn get_all() -> Vec<CardEntity> {
+        cards_dao::get_all()
+    }
+
+    pub fn get_by_id(card_id: i64) -> CardEntity {
+        let queried_card = cards_dao::get_by_id(card_id);
+
+        match queried_card {
+            Some(card) => card,
+            None => panic!("Any card with ID '{}' found.", card_id)
+        }
+    }
+
+    pub fn get_player_cards(player_id: i64) -> Vec<CardEntity> {
+        let player_cards = cards_dao::get_player_cards(player_id);
+        if player_cards.is_empty() {
+            panic!("Player {} does not have any card", player_id);
+        }
+        player_cards
+    }
+
+    pub fn insert(new_card: NewCardEntity) -> CardEntity {
+        let saved_card = cards_dao::save(&new_card);
+
+        match saved_card {
+            Some(card) => card,
+            None => panic!("Card was not saved.")
+        }
+    }
+    
+}
+
+
+pub mod players_service {
+    use crate::models::*;
+    use super::players_dao::{*, self};
+
+    pub fn get_players_by_team_id(team_id: i64) -> Vec<PlayerEntity> {
+        let player_cards = players_dao::get_players_by_team_id(team_id);
+        if player_cards.is_empty() {
+            panic!("Team {} does not have any player", team_id);
+        }
+        player_cards
+    }
+}
+
+
+pub mod tables_service {
+    use crate::models::*;
+
 }
