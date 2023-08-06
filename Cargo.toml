@@ -7,6 +7,10 @@ edition = "2021"
 
 [dependencies]
 actix-web = "4"
+actix-cors = "0.6.4"
 serde = { version = "1.0", features = ["derive"] }
-diesel = { version = "2.1.0", features = ["postgres", "sqlite"] }
+env_logger = "0.10"
+sqlx = { version = "0.7.1", features = ["postgres", "runtime-async-std"] }
+tokio = { version = "1", features = ["full"] }
 dotenv = "0.15.0"
+rand = "0.8.5"

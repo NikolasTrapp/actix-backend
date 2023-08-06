@@ -1,7 +1,7 @@
 use actix_web::{get, post, web, HttpResponse, Responder};
-use crate::models::*;
+use crate::models::card::CardEntity;
+use crate::models::table::NewTableEntity;
 
-struct AppState;
 
 #[get("/")]
 async fn hello() -> impl Responder {
@@ -9,12 +9,7 @@ async fn hello() -> impl Responder {
 }
 
 #[get("/pardal")]
-async fn pardal() -> impl Responder {
-    HttpResponse::Ok().body("🐦 piu piu")
+async fn pardal(data: web::Data<crate::utils::AppState>) -> impl Responder {
+    HttpResponse::Ok().json(crate::dao::card_dao::update(5, CardEntity::new(4, crate::models::suit::Suit::Diamonds, 999, false, 1), &data.db).await.expect(""))
 }
 
-#[post("/users")]
-async fn create_user(user: web::Json<CardEntity>, _data: web::Data<AppState>) -> impl Responder {
-    let user = user.into_inner();
-    HttpResponse::Created().json(user)
-}
