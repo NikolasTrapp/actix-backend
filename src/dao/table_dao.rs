@@ -5,7 +5,7 @@ use crate::models::table::{ TableEntity, NewTableEntity };
 pub async fn get_all(pool: &PgPool) -> Result<Vec<TableEntity>, Error> {
     sqlx::query_as!(
         TableEntity,
-        r#"SELECT id, last_played, manilha FROM tables_tb"#
+        r#"SELECT id, last_played, maquina FROM tables_tb"#
     )
     .fetch_all(pool)
     .await
@@ -15,7 +15,7 @@ pub async fn get_by_id(table_id: i64, pool: &PgPool) -> Result<TableEntity, Erro
     sqlx::query_as!(
         TableEntity,
         r#"
-        SELECT id, last_played, manilha 
+        SELECT id, last_played, maquina 
         FROM tables_tb 
         WHERE id = $1
         "#, 
@@ -29,12 +29,12 @@ pub async fn save(new_table: &NewTableEntity, pool: &PgPool) -> Result<TableEnti
     sqlx::query_as!(
         TableEntity,
         r#"
-        INSERT INTO tables_tb (last_played, manilha)
+        INSERT INTO tables_tb (last_played, maquina)
         VALUES ($1, $2)
         RETURNING *
         "#, 
         new_table.last_played,
-        new_table.manilha,
+        new_table.maquina,
     )
     .fetch_one(pool)
     .await
@@ -60,24 +60,24 @@ pub async fn update(target_id: i64, table: TableEntity, pool: &PgPool) -> Result
         r#"
         UPDATE tables_tb SET
         last_played = $1,
-        manilha = $2
+        maquina = $2
         WHERE id = $3
         RETURNING *
         "#, 
         table.last_played,
-        table.manilha,
+        table.maquina,
         target_id,
     )
     .fetch_one(pool)
     .await
 }
 
-pub async fn set_table_manilha(target_id: i64, card_id: i64, pool: &PgPool) -> Result<TableEntity, Error> {
+pub async fn set_table_maquina(target_id: i64, card_id: i64, pool: &PgPool) -> Result<TableEntity, Error> {
     sqlx::query_as!(
         TableEntity,
         r#"
         UPDATE tables_tb SET
-        manilha = $1
+        maquina = $1
         WHERE id = $2
         RETURNING *
         "#, 

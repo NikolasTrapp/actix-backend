@@ -35,3 +35,16 @@ pub fn generate_random_number(x: usize) -> usize {
     let mut rng = rand::thread_rng();
     rng.gen_range(0..=x)
 }
+
+
+pub fn is_manilha<T>(maquina: &T, card: &T) -> bool
+where
+    T: crate::models::card::CardFunctions,
+{
+    match maquina.card_value() {
+        3 => card.card_value() == 4,
+        12 => card.card_value() == 1,
+        7 => card.card_value() == 10,
+        all_other_values => all_other_values == card.card_value() - 1
+    }
+}

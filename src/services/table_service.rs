@@ -2,6 +2,7 @@ use crate::{models::{ table::TableEntity, team::TeamEntity, card::CardEntity, pl
 use crate::dao::{ table_dao, team_dao, player_dao, card_dao };
 use log::info;
 use sqlx::{ PgPool, Error};
+use crate::utils::is_manilha;
 
 pub async fn setup_table(table_id: i64, player_id: i64, pool: &PgPool) -> Result<TableProjection, Error> {
     let table = table_dao::get_by_id(table_id, pool).await?;
@@ -25,30 +26,27 @@ pub async fn setup_table(table_id: i64, player_id: i64, pool: &PgPool) -> Result
         if players.len() >= 4 {
             let mut card_shuffler = CardsShuffler::new();
             let mut shuffled_cards = card_shuffler.get_shuffled_cards();
-            let manilha = card_shuffler.get_card();
-            let new_manilha = card_dao::save(manilha, pool).await?;
+            let maquina = card_shuffler.get_card();
+            let new_maquina = card_dao::save(maquina, pool).await?;
 
-            table_dao::set_table_manilha(table_id, new_manilha.id, pool).await?;
+            table_dao::set_table_maquina(table_id, new_maquina.id, pool).await?;
 
             let mut player_cards: Vec<CardEntity> = vec![];
             for index in 0..4{
                 for card in &mut shuffled_cards[index] {
-                    card.is_manilha = &card.card_value == &manilha.card_value;
+                    card.is_manilha = is_manilha(&maquina, &card);
                     card.player_entity_id = Some(players[index].id);
                 }
                 player_cards.append(&mut card_dao::save_cards(shuffled_cards[index].clone(), pool).await?);
             }
 
-            info!("ififif");
-            return Ok(get_table_projection(table, Some(CardProjection::new(new_manilha.id, new_manilha.suit, new_manilha.card_value, new_manilha.is_manilha)), teams, players, player_cards, true)) 
+            return Ok(get_table_projection(table, Some(CardProjection::new(new_maquina.id, new_maquina.suit, new_maquina.card_value, new_maquina.is_manilha)), teams, players, player_cards, true)) 
         } else {
             info!("{:#?}", players);
             return Ok(get_table_projection(table, None, teams, players, vec![], false)) 
         }
     } else {
-        info!("asdibasifdbasidbasidbiasbdiasdbiasbdiasbdisdb");
         let new_teams = team_dao::create_two_empty_teams(table_id, pool).await?;
-        info!("{:#?}", new_teams);
         let player = player_dao::add_player_to_team(player_id, new_teams[0].id, pool).await?;
         return Ok(get_table_projection(table, None, new_teams, vec![player], vec![], false))
     }

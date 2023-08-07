@@ -5,14 +5,14 @@ use serde::{ Deserialize, Serialize };
 pub struct TableProjection {
     id: i64,
     last_played: Option<i64>,
-    manilha: Option<CardProjection>,
+    maquina: Option<CardProjection>,
     teams: Vec<TeamProjection>,
     start: bool,
 }
 
 impl TableProjection {
-    pub fn new(id: i64, last_played: Option<i64>, manilha: Option<CardProjection>, teams: Vec<TeamProjection>, start: bool ) -> Self {
-        TableProjection { id, last_played, manilha, teams, start }
+    pub fn new(id: i64, last_played: Option<i64>, maquina: Option<CardProjection>, teams: Vec<TeamProjection>, start: bool ) -> Self {
+        TableProjection { id, last_played, maquina, teams, start }
     }
 }
 
@@ -60,5 +60,15 @@ impl CardProjection {
 
     pub fn from_card(src: CardEntity) -> Self {
         CardProjection { id: src.id, suit: src.suit, card_value: src.card_value, is_manilha: src.is_manilha }
+    }
+}
+
+trait CardFunctions {
+    fn card_value(&self) -> i16;
+}
+
+impl CardFunctions for CardEntity {
+    fn card_value(&self) -> i16 {
+        self.card_value
     }
 }

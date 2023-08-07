@@ -23,7 +23,6 @@ async fn pardal(data: web::Data<crate::utils::AppState>) -> impl Responder {
 
 #[post("/michel_telo/{table_id}/{player_id}")]
 async fn michel_telo(params: web::Path<PathParams>, data: web::Data<crate::utils::AppState>) -> impl Responder {
-    info!("oiiiiiiiiii");
     HttpResponse::Ok().json(setup_table(params.table_id, params.player_id, &data.db).await.expect("msg"))
 
 }

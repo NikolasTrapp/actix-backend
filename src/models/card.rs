@@ -2,6 +2,10 @@ use super::{suit::Suit, projections::CardProjection};
 use serde::{ Deserialize, Serialize };
 use sqlx::FromRow;
 
+pub trait CardFunctions {
+    fn card_value(&self) -> i16;
+}
+
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, FromRow)]
 pub struct CardEntity {
     pub id: i64,
@@ -105,5 +109,19 @@ impl NewCardEntity {
 
     pub fn to_entity_manilha(&self) -> CardProjection {
         CardProjection::new(self.id.unwrap(), self.suit, self.card_value, self.is_manilha)
+    }
+}
+
+
+
+impl CardFunctions for NewCardEntity {
+    fn card_value(&self) -> i16 {
+        self.card_value
+    }
+}
+
+impl CardFunctions for CardEntity {
+    fn card_value(&self) -> i16 {
+        self.card_value
     }
 }

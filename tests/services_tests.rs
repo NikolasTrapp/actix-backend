@@ -27,7 +27,7 @@ mod basic_sql_operation_tests {
         sqlx::query_as!(
             TableEntity,
             r#"
-            INSERT INTO tables_tb (last_played, manilha)
+            INSERT INTO tables_tb (last_played, maquina)
             VALUES (1, 1), (1, 2), (2, 1), (2, 2)
             RETURNING *
             "#
@@ -79,7 +79,7 @@ mod basic_sql_operation_tests {
         let compare_with = TableEntity {
             id: 1,
             last_played: Some(1),
-            manilha: Some(1),
+            maquina: Some(1),
         };
         let _ = add_table_to_tests(&conn).await?;
 
@@ -95,7 +95,7 @@ mod basic_sql_operation_tests {
         let compare_with = TableEntity {
             id: 1,
             last_played: Some(1),
-            manilha: Some(1),
+            maquina: Some(1),
         };
         let _ = add_table_to_tests(&conn).await?;
 
