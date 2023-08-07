@@ -1,18 +1,18 @@
-use super::suit::Suit;
+use super::{suit::Suit, projections::CardProjection};
 use serde::{ Deserialize, Serialize };
 use sqlx::FromRow;
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, FromRow)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, FromRow)]
 pub struct CardEntity {
     pub id: i64,
     pub suit: Suit,
     pub card_value: i16,
     pub is_manilha: bool,
-    pub player_entity_id: i64,
+    pub player_entity_id: Option<i64>,
 }
 
 impl CardEntity {
-    pub fn new(id: i64, suit: Suit, card_value: i16, is_manilha: bool, player_entity_id: i64) -> Self {
+    pub fn new(id: i64, suit: Suit, card_value: i16, is_manilha: bool, player_entity_id: Option<i64>) -> Self {
         CardEntity { id, suit, card_value, is_manilha, player_entity_id }
     }
 
@@ -101,5 +101,9 @@ impl NewCardEntity {
             NewCardEntity::new(None, Suit::Hearts, 11, false, None),
             NewCardEntity::new(None, Suit::Hearts, 12, false, None),
         ]
+    }
+
+    pub fn to_entity_manilha(&self) -> CardProjection {
+        CardProjection::new(self.id.unwrap(), self.suit, self.card_value, self.is_manilha)
     }
 }

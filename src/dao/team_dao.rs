@@ -78,7 +78,7 @@ pub async fn get_table_teams(table_id: i64, pool: &PgPool) -> Result<Vec<TeamEnt
         r#"
         SELECT id, score, table_entity_id 
         FROM teams_tb 
-        WHERE id = $1
+        WHERE table_entity_id = $1
         LIMIT 2
         "#, 
         table_id,
@@ -95,7 +95,7 @@ pub async fn create_two_empty_teams(table_id: i64, pool: &PgPool) -> Result<Vec<
         VALUES (0, $1), (0, $1)
         RETURNING *
         "#,
-        table_id
+        table_id,
     ).fetch_all(pool)
     .await
 }

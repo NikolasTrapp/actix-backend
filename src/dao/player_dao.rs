@@ -81,7 +81,7 @@ pub async fn get_team_players(team_id: i64, pool: &PgPool) -> Result<Vec<PlayerE
         r#"
         SELECT id, name, victories, team_entity_id 
         FROM players_tb 
-        WHERE id = $1
+        WHERE team_entity_id = $1
         "#, 
         team_id,
     )

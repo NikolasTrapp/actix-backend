@@ -71,3 +71,19 @@ pub async fn update(target_id: i64, table: TableEntity, pool: &PgPool) -> Result
     .fetch_one(pool)
     .await
 }
+
+pub async fn set_table_manilha(target_id: i64, card_id: i64, pool: &PgPool) -> Result<TableEntity, Error> {
+    sqlx::query_as!(
+        TableEntity,
+        r#"
+        UPDATE tables_tb SET
+        manilha = $1
+        WHERE id = $2
+        RETURNING *
+        "#, 
+        card_id,
+        target_id,
+    )
+    .fetch_one(pool)
+    .await
+}

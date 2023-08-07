@@ -20,6 +20,7 @@ const SERVER_ADDRESS: &'static str = "127.0.0.1:8080";
 async fn main() -> std::io::Result<()> {
 
     dotenv().ok();
+    env::set_var("RUST_LOG", "info");
     env_logger::init();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
