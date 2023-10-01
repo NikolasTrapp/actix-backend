@@ -24,8 +24,8 @@ impl CardEntity {
         self.id
     }
 
-    pub fn get_real_card_strength(self, other: CardEntity) -> u8 {
-        let mut card_strength: u8 = match other.card_value {
+    pub fn get_real_card_strength(self) -> u8 {
+        let mut card_strength: u8 = match self.card_value {
             4 => 1,
             5 => 2,
             6 => 3,
@@ -36,11 +36,11 @@ impl CardEntity {
             1 => 8,
             2 => 9,
             3 => 10,
-            _ => panic!("Card value {} doesn't exist.", other.card_value)
+            _ => panic!("Card value {} doesn't exist.", self.card_value)
         };
 
-        if other.is_manilha {
-            card_strength += Suit::get_suit_strength(&other.suit);
+        if self.is_manilha {
+            card_strength += Suit::get_suit_strength(&self.suit);
         }
 
         card_strength

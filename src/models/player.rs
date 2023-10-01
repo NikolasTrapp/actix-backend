@@ -20,9 +20,6 @@ impl PlayerEntity {
         }
     }
 
-    pub fn get_id(self) -> i64 {
-        self.id
-    }
 }
 
 

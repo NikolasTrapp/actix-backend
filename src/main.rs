@@ -7,6 +7,7 @@ pub mod utils;
 
 use std::env;
 
+use actix_backend::models::card::CardEntity;
 use actix_cors::Cors;
 use actix_web::{ http::header, middleware::Logger, App, HttpServer, web };
 use dotenv::dotenv;
@@ -30,6 +31,10 @@ async fn main() -> std::io::Result<()> {
         .connect(&database_url)
         .await
         .expect(&format!("Couldn't connect to database url '{}'", &database_url));
+
+        let _ = sqlx::migrate!("./migrations")
+        .run(&db)
+        .await;
 
     HttpServer::new(move || App::new()
         .app_data(web::Data::new(crate::utils::AppState { db: db.clone()}))

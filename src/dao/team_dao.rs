@@ -99,3 +99,18 @@ pub async fn create_two_empty_teams(table_id: i64, pool: &PgPool) -> Result<Vec<
     ).fetch_all(pool)
     .await
 }
+
+pub async fn get_team_from_player_id(player_id: i64, pool: &PgPool) -> Result<TeamEntity, Error> {
+    sqlx::query_as!(
+        TeamEntity,
+        r#"
+        SELECT team.id, team.score, team.table_entity_id  
+        FROM teams_tb team 
+        INNER JOIN players_tb player ON player.id = $1 AND player.team_entity_id = team.id
+        "#,
+        player_id
+        )
+        .fetch_one(pool)
+        .await
+
+}

@@ -1,6 +1,7 @@
 use sqlx::{ PgPool, Error};
 use crate::models::card::{ CardEntity, NewCardEntity };
 use crate::models::suit::Suit;
+use crate::models::player::PlayerEntity;
 
 pub async fn get_all(pool: &PgPool) -> Result<Vec<CardEntity>, Error> {
     sqlx::query_as!(
@@ -133,4 +134,39 @@ pub async fn delete_player_cards(player_id: i64, pool: &PgPool) -> Result<i64, E
     .map(|_| count += 1 );
 
     Ok(count)
+}
+
+pub async fn delete_cards_by_id(cards: &Vec<CardEntity>, pool: &PgPool) -> Result<i64, Error> {
+    let mut count = 0;
+    for card in cards {
+        let _ = sqlx::query!(
+            r#"
+            DELETE FROM cards_tb
+            WHERE id = $1
+            "#, card.id
+        ).execute(pool)
+        .await;
+
+        count += 1;
+    }
+
+    Ok(count)
+}
+
+pub async fn get_cards_by_players_id_list(players_id: Vec<i64>, pool: &PgPool) -> Result<Vec<CardEntity>, Error> {
+
+    //let ids = players_id.into_iter().map(|player| player.id.to_string()).collect::<String>();
+
+    sqlx::query_as!(
+        CardEntity,
+        r#"
+        SELECT id, suit AS "suit: Suit", card_value, is_manilha, player_entity_id FROM cards_tb
+        WHERE player_entity_id in ($1, $2, $3, $4)
+        "#,
+        players_id[0],
+        players_id[1],
+        players_id[2],
+        players_id[3],
+        ).fetch_all(pool)
+        .await
 }
